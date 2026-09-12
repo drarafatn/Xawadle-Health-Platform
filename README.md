@@ -54,7 +54,7 @@ The dashboard is built with **Streamlit** and provides interactive analytics for
 
 3. Run the Streamlit app:
 
-   ```bash
+   ```bashThe app is deployed at: https://xawadle-health-platform-secm4mz7vcmv32esjlapp6f.streamlit.app/
    streamlit run app.py
    ```
 
@@ -62,7 +62,7 @@ The dashboard is built with **Streamlit** and provides interactive analytics for
 
 ### Streamlit Cloud
 
-The app is deployed at: [https://lapp6f.streamlit.app](https://lapp6f.streamlit.app)
+The app is deployed at: [
 
 ## 📊 Data Sources
 
