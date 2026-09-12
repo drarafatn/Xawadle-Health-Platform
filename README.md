@@ -1,5 +1,3 @@
-# Xawadle-Health-Platform
-Enterprise Healthcare Data Analytics &amp; AI Benchmarking Platform for Xawadle Health Centre
 # Xawadle Health Centre — Q3 Analytics Platform
 
 Enterprise Healthcare Data Analytics & AI Benchmarking Platform for Xawadle Health Centre.
@@ -43,6 +41,7 @@ The dashboard is built with **Streamlit** and provides interactive analytics for
 ### Local Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/drarafatn/Xawadle-Health-Platform.git
    cd Xawadle-Health-Platform
