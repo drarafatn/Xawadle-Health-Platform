@@ -10,6 +10,11 @@ from benchmarking import example_synthetic_benchmark
 st.set_page_config(page_title="Xawadle Health Centre | Q3 Analytics", page_icon="+", layout="wide")
 DATA_DIR = Path(__file__).parent
 
+# =========================================================
+# TARGET POPULATION SETTING (EPI)
+# =========================================================
+TARGET_POPULATION = 21000
+
 
 def pct(x):
     return f"{x:.1%}" if x is not None else "—"
@@ -80,7 +85,12 @@ if section == "Executive overview":
 
     st.markdown("### EPI Coverage Snapshot")
     epi_cols = st.columns(3)
-    epi_cols[0].metric("Measles Coverage", pct(metrics["measles_coverage"]))
+
+    # Xisaabi Measles Coverage dhab ah iyadoo la isticmaalayo Target Population
+    measles_total = epi[epi["antigen"] == "Measles"]["total"].sum() if not epi.empty else 0
+    measles_coverage = measles_total / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
+
+    epi_cols[0].metric("Measles Coverage", pct(measles_coverage))
     epi_cols[1].metric("Total EPI Doses", f"{epi['total'].sum():,.0f}" if not epi.empty else "0")
     epi_cols[2].metric("Antigens Reported", f"{epi['antigen'].nunique()}" if not epi.empty else "0")
 
@@ -251,14 +261,14 @@ elif section == "Nutrition & EPI":
         st.metric("Malnutrition among screened", pct(metrics["malnutrition_rate"]))
     with right:
         e = epi[epi.total.notna()].copy()
-        epi_total = float(e["total"].sum()) if not e.empty else 0.0
-        e["coverage"] = e.total / epi_total if epi_total > 0 else 0.0
+        # Coverage dhab ah antigen kasta iyadoo la isticmaalayo Target Population
+        e["coverage"] = e["total"] / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
         fig, ax = plt.subplots(figsize=(7, 5))
         sns.barplot(data=e, y="antigen", x="coverage", palette="rocket", ax=ax)
-        ax.set(xlabel="Coverage against stated denominator", ylabel="")
+        ax.set(xlabel="Coverage against target population (21,000)", ylabel="")
         ax.set_xlim(0, 1.05)
         st.pyplot(fig, clear_figure=True)
-        st.metric("Recorded measles dose coverage", pct(metrics["measles_coverage"]))
+        st.metric("Measles Coverage", pct(measles_coverage))
     st.dataframe(epi, use_container_width=True, hide_index=True)
 
     st.markdown("### Epidemiology Scenarios")
