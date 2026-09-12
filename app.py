@@ -263,6 +263,11 @@ elif section == "Nutrition & EPI":
         e = epi[epi.total.notna()].copy()
         # Coverage dhab ah antigen kasta iyadoo la isticmaalayo Target Population
         e["coverage"] = e["total"] / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
+
+        # Xisaabi measles coverage halkan si looga fogaado NameError
+        measles_total = epi[epi["antigen"] == "Measles"]["total"].sum() if not epi.empty else 0
+        measles_coverage = measles_total / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
+
         fig, ax = plt.subplots(figsize=(7, 5))
         sns.barplot(data=e, y="antigen", x="coverage", palette="rocket", ax=ax)
         ax.set(xlabel="Coverage against target population (21,000)", ylabel="")
