@@ -1,12 +1,12 @@
 period,antigen,total,male,female,data_status
 Q3,BCG,100,45,55,provided
 Q3,OPV,300,134,166,provided
-Q3,IPV 1,55,20,25,provided
+Q3,IPV 1,55,25,30,provided
 Q3,IPV 2,40,17,23,provided
-Q3,IPV 3,30,12,13,provided
-Q3,Penta 1,55,20,25,provided
+Q3,IPV 3,30,15,15,provided
+Q3,Penta 1,55,25,30,provided
 Q3,Penta 2,40,17,23,provided
-Q3,Penta 3,30,12,13,provided
+Q3,Penta 3,30,15,15,provided
 Q3,PCV,134,57,77,provided
 Q3,Rota,110,50,60,provided
 Q3,Measles,135,65,70,provided
