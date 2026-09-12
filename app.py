@@ -289,6 +289,18 @@ elif section == "Biostatistics":
     st.markdown("### Descriptive statistics of reported service totals")
     st.json(descriptive(services.total.dropna()))
 
+    # =========================================================
+    # CUSUB: Descriptive statistics by domain
+    # =========================================================
+    st.markdown("### Descriptive statistics by domain")
+    st.caption("Tirakoobka guud ee qayb kasta (OPD, Maternal, Nutrition) si loo kala saaro xogta.")
+    
+    for domain_name in services["domain"].unique():
+        domain_data = services[services["domain"] == domain_name]["total"].dropna()
+        if len(domain_data) > 0:
+            with st.expander(f"📊 {domain_name} (n = {len(domain_data)})"):
+                st.json(descriptive(domain_data))
+
     st.markdown("### Transparent proxy risk and odds ratios")
     st.dataframe(epidemiology_scenarios(services, epi), use_container_width=True, hide_index=True)
     st.warning(
