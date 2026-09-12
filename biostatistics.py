@@ -24,7 +24,6 @@ def odds_ratio(exposed_cases: float, exposed_total: float, unexposed_cases: floa
     return (a / b) / (c / d) if b and c else None
 
 def epidemiology_scenarios(services: pd.DataFrame, epi: pd.DataFrame) -> pd.DataFrame:
-    """Return clearly labeled proxy comparisons, not causal estimates."""
     def get_service(label):
         match = services.loc[services.indicator == label, "total"]
         return float(match.iloc[0]) if not match.empty else 0.0
@@ -38,6 +37,7 @@ def epidemiology_scenarios(services: pd.DataFrame, epi: pd.DataFrame) -> pd.Data
     epi_total = 300.0
     measles = get_epi("Measles")
     incomplete = max(0.0, epi_total - measles)
+    
     rows = [{
         "scenario": "Malnutrition proxy: screened vs not screened",
         "exposure_definition": "Screened children; facility aggregate proxy only",
