@@ -5,7 +5,7 @@ Q3,Maternal,ANC,420,0,420,,provided
 Q3,Maternal,PNC,120,0,120,,provided
 Q3,Maternal,Deliveries,45,0,45,,provided
 Q3,Maternal,Deliveries with complications,5,0,5,,provided
-Q3,Nutrition,Nutrition screening,600,300,300,,provided
+Q3,Nutrition,Nutrition screening,600,275,325,,provided
 Q3,Nutrition,Normal,450,220,230,,provided
 Q3,Nutrition,Malnutrition,150,80,70,,provided
 Q3,Nutrition,Acute malnutrition,113,48,65,,provided
