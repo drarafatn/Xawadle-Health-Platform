@@ -1,13 +1,13 @@
-Indicator total male female male + female Xaaladda
-OPD over 5 years 353 178 175 353 ✅
-OPD under 5 years 373 195 178 373 ✅
-ANC 420 0 420 420 ✅
-PNC 120 0 120 120 ✅
-Deliveries 45 0 45 45 ✅
-Deliveries with complications 5 0 5 5 ✅
-Nutrition screening 600 300 300 600 ✅
-Normal 450 220 230 450 ✅
-Malnutrition 150 80 70 150 ✅
-Acute malnutrition 113 48 65 113 ✅
-SAM 37 15 22 37 ✅
-SAM with complications/referred to SC 22 10 12 22 ✅
+period,domain,indicator,total,male,female,parent_indicator,data_source
+Q3,OPD,OPD over 5 years,353,178,175,,provided
+Q3,OPD,OPD under 5 years,373,195,178,,provided
+Q3,Maternal,ANC,420,0,420,,provided
+Q3,Maternal,PNC,120,0,120,,provided
+Q3,Maternal,Deliveries,45,0,45,,provided
+Q3,Maternal,Deliveries with complications,5,0,5,,provided
+Q3,Nutrition,Nutrition screening,600,300,300,,provided
+Q3,Nutrition,Normal,450,220,230,,provided
+Q3,Nutrition,Malnutrition,150,80,70,,provided
+Q3,Nutrition,Acute malnutrition,113,48,65,,provided
+Q3,Nutrition,SAM,37,15,22,,provided
+Q3,Nutrition,SAM with complications/referred to SC,22,10,12,,provided
