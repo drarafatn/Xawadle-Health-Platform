@@ -67,7 +67,6 @@ def epidemiology_scenarios(services: pd.DataFrame, epi: pd.DataFrame) -> pd.Data
     screening = get_service("Nutrition screening")
     mal = get_service("Malnutrition")
 
-    # Wadarta guud ee EPI (ma aha 300 oo keliya)
     epi_total = float(epi["total"].sum()) if not epi.empty else 0.0
     measles = get_epi("Measles")
     incomplete = max(0.0, epi_total - measles)
@@ -141,7 +140,6 @@ def key_metrics(services: pd.DataFrame, epi: pd.DataFrame) -> dict[str, float]:
     comp_deliveries = safe_row("Deliveries with complications")
     measles = safe_epi("Measles")
 
-    # Wadarta guud ee EPI
     epi_total = float(epi["total"].sum()) if not epi.empty else 0.0
     total_opd = opd_over + opd_under
 
@@ -156,14 +154,8 @@ def key_metrics(services: pd.DataFrame, epi: pd.DataFrame) -> dict[str, float]:
     }
 
 
-# =========================================================
-# FUNCTION CUSUB: Disease Risk Ratios
-# =========================================================
 def disease_risk_ratios(diseases: pd.DataFrame) -> pd.DataFrame:
-    """Xisaabi Risk Ratio ee cudur kasta: under_5 vs over_5.
-
-    Risk Ratio (RR) = (Under-5 cases / Total Under-5) / (Over-5 cases / Total Over-5)
-    """
+    """Xisaabi Risk Ratio ee cudur kasta: under_5 vs over_5."""
     if diseases.empty:
         return pd.DataFrame()
 
