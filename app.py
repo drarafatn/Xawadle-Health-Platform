@@ -8,7 +8,7 @@ from biostatistics import descriptive, epidemiology_scenarios, key_metrics, root
 from benchmarking import example_synthetic_benchmark
 
 st.set_page_config(page_title="Xawadle Health Centre | Q3 Analytics", page_icon="+", layout="wide")
-DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR = Path(__file__).parent
 
 def pct(x): return f"{x:.1%}" if x is not None else "—"
 
