@@ -53,7 +53,7 @@ with st.expander("Data quality and provenance", expanded=not quality.passed):
     )
 
 # =========================================================
-# DATA DICTIONARY (CUSUB)
+# DATA DICTIONARY
 # =========================================================
 with st.expander("📖 Data Dictionary"):
     st.markdown("""
@@ -146,7 +146,7 @@ elif section == "Service analytics":
 
 
 # =========================================================
-# DISEASE ANALYTICS (OO LAGU DARAY FILTERS, DOWNLOAD, HEATMAP, PIE)
+# DISEASE ANALYTICS
 # =========================================================
 elif section == "Disease Analytics":
     st.markdown("## Disease Analytics (OPD)")
@@ -155,7 +155,7 @@ elif section == "Disease Analytics":
     if diseases.empty:
         st.warning("No disease data available. Please check opd_disease_counts.csv.")
     else:
-        # ===== FILTERS (CUSUB) =====
+        # ===== FILTERS =====
         st.markdown("### 🔍 Filter Data")
         col1, col2 = st.columns(2)
         with col1:
@@ -175,7 +175,7 @@ elif section == "Disease Analytics":
             diseases["age_group"].isin(age_filter) & diseases["disease"].isin(disease_filter)
         ]
 
-        # ===== DOWNLOAD BUTTON (CUSUB) =====
+        # ===== DOWNLOAD BUTTON =====
         st.download_button(
             label="📥 Download Filtered Data (CSV)",
             data=filtered.to_csv(index=False),
@@ -227,13 +227,13 @@ elif section == "Disease Analytics":
         )
         st.dataframe(pivot_age, use_container_width=True)
 
-        # ===== HEATMAP (CUSUB) =====
+        # ===== HEATMAP =====
         st.markdown("### 🔥 Disease vs Age Group Heatmap")
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.heatmap(pivot_age, annot=True, fmt=".0f", cmap="YlOrRd", ax=ax)
         st.pyplot(fig, clear_figure=True)
 
-        # ===== PIE CHART (CUSUB) =====
+        # ===== PIE CHART =====
         st.markdown("### 🥧 Disease Distribution")
         disease_pie = filtered.groupby("disease")["total"].sum()
         fig, ax = plt.subplots(figsize=(7, 7))
@@ -321,7 +321,7 @@ else:
 
 
 # =========================================================
-# FOOTER DISCLAIMER (CUSUB)
+# FOOTER DISCLAIMER
 # =========================================================
 st.divider()
 st.caption(
