@@ -3,9 +3,9 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
-from src.ingestion import prepare
-from src.biostatistics import descriptive, epidemiology_scenarios, key_metrics, root_cause_actions
-from src.benchmarking import example_synthetic_benchmark
+from ingestion import prepare
+from biostatistics import descriptive, epidemiology_scenarios, key_metrics, root_cause_actions
+from benchmarking import example_synthetic_benchmark
 
 st.set_page_config(page_title="Xawadle Health Centre | Q3 Analytics", page_icon="+", layout="wide")
 DATA_DIR = Path(__file__).parent / "data"
@@ -88,6 +88,6 @@ else:
     st.markdown("The framework is ready for an approved model's predictions or clinician-approved rules. The demo below tests metric plumbing on deterministic synthetic vectors only.")
     result=example_synthetic_benchmark()
     a,b,c=st.columns(3); a.metric("Smoke-test accuracy", f"{result.metrics['accuracy']:.1%}"); b.metric("Demographic parity gap", f"{result.metrics['demographic_parity_gap']:.1%}"); c.metric("Status", "PASS")
-    st.code("from src.benchmarking import benchmark_predictions\nresults = benchmark_predictions(y_true, y_pred, group=sex)")
+    st.code("from benchmarking import benchmark_predictions\nresults = benchmark_predictions(y_true, y_pred, group=sex)")
     st.dataframe(pd.DataFrame([result.metrics]), use_container_width=True, hide_index=True)
     st.info("For production: evaluate sensitivity, specificity, PPV, NPV, calibration, subgroup performance, missingness, and threshold stability on a governed, labeled validation set. Do not treat the smoke test as clinical evidence.")
