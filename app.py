@@ -15,7 +15,8 @@ def pct(x):
     return f"{x:.1%}" if x is not None else "—"
 
 
-data, quality = prepare(DATA_DIR)
+with st.spinner("Loading data..."):
+    data, quality = prepare(DATA_DIR)
 services, diseases, epi = data["services"], data["diseases"], data["epi"]
 metrics = key_metrics(services, epi)
 
@@ -51,6 +52,23 @@ with st.expander("Data quality and provenance", expanded=not quality.passed):
         "Missing values are preserved as NA. The source prompt omitted numeric disease-by-gender counts and IPV/Penta totals."
     )
 
+# =========================================================
+# DATA DICTIONARY (CUSUB)
+# =========================================================
+with st.expander("📖 Data Dictionary"):
+    st.markdown("""
+    | Column | Meaning |
+    |---|---|
+    | `period` | Reporting quarter (Q3 = July–September) |
+    | `age_group` | `under_5` ama `over_5` |
+    | `disease` | Nooca cudurka (ARI, Pneumonia, Fever, Diarrhoea, UTI) |
+    | `antigen` | Nooca tallaalka (BCG, OPV, IPV, Penta, PCV, Rota, Measles) |
+    | `indicator` | Nooca adeegga (OPD, ANC, PNC, Nutrition) |
+    | `total` | Tirada guud ee kiisaska |
+    | `male` / `female` | Kala qaybinta jinsiga |
+    | `data_status` | `provided` ama `missing` |
+    """)
+
 
 # =========================================================
 # EXECUTIVE OVERVIEW
@@ -63,7 +81,6 @@ if section == "Executive overview":
     cols[2].metric("Malnutrition rate", pct(metrics["malnutrition_rate"]))
     cols[3].metric("Delivery complications", pct(metrics["delivery_complication_rate"]))
 
-    # Qaybta EPI ee bogga hore
     st.markdown("### EPI Coverage Snapshot")
     epi_cols = st.columns(3)
     epi_cols[0].metric("Measles Coverage", pct(metrics["measles_coverage"]))
@@ -129,7 +146,7 @@ elif section == "Service analytics":
 
 
 # =========================================================
-# DISEASE ANALYTICS (CUSUB)
+# DISEASE ANALYTICS (OO LAGU DARAY FILTERS, DOWNLOAD, HEATMAP, PIE)
 # =========================================================
 elif section == "Disease Analytics":
     st.markdown("## Disease Analytics (OPD)")
@@ -138,29 +155,57 @@ elif section == "Disease Analytics":
     if diseases.empty:
         st.warning("No disease data available. Please check opd_disease_counts.csv.")
     else:
-        # 1. Soo bandhig shaxda xogta oo dhan
-        st.markdown("### Disease Counts Table")
-        st.dataframe(diseases, use_container_width=True, hide_index=True)
+        # ===== FILTERS (CUSUB) =====
+        st.markdown("### 🔍 Filter Data")
+        col1, col2 = st.columns(2)
+        with col1:
+            age_filter = st.multiselect(
+                "Age Group",
+                options=diseases["age_group"].unique(),
+                default=list(diseases["age_group"].unique()),
+            )
+        with col2:
+            disease_filter = st.multiselect(
+                "Disease",
+                options=diseases["disease"].unique(),
+                default=list(diseases["disease"].unique()),
+            )
 
-        # 2. Graph-ka tirada guud ee cudur kasta
+        filtered = diseases[
+            diseases["age_group"].isin(age_filter) & diseases["disease"].isin(disease_filter)
+        ]
+
+        # ===== DOWNLOAD BUTTON (CUSUB) =====
+        st.download_button(
+            label="📥 Download Filtered Data (CSV)",
+            data=filtered.to_csv(index=False),
+            file_name="filtered_disease_data.csv",
+            mime="text/csv",
+        )
+
+        # ===== SHAXDA XOGTA =====
+        st.markdown("### Disease Counts Table")
+        st.dataframe(filtered, use_container_width=True, hide_index=True)
+
+        # ===== GRAPH: TOTAL BY DISEASE =====
         st.markdown("### Total Cases by Disease")
-        disease_totals = diseases.groupby("disease")["total"].sum().reset_index()
+        disease_totals = filtered.groupby("disease")["total"].sum().reset_index()
         fig, ax = plt.subplots(figsize=(10, 5))
         sns.barplot(data=disease_totals, y="disease", x="total", palette="flare", ax=ax)
         ax.set(xlabel="Total Cases", ylabel="")
         st.pyplot(fig, clear_figure=True)
 
-        # 3. Graph-ka kala qaybinta da'da (Age Group)
+        # ===== GRAPH: CASES BY AGE GROUP =====
         st.markdown("### Cases by Age Group")
-        age_totals = diseases.groupby("age_group")["total"].sum().reset_index()
+        age_totals = filtered.groupby("age_group")["total"].sum().reset_index()
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.barplot(data=age_totals, x="age_group", y="total", palette="Set2", ax=ax)
         ax.set(xlabel="Age Group", ylabel="Total Cases")
         st.pyplot(fig, clear_figure=True)
 
-        # 4. Graph-ka kala qaybinta jinsiga (Gender)
+        # ===== GRAPH: CASES BY GENDER =====
         st.markdown("### Cases by Gender")
-        gender_totals = diseases[["male", "female"]].sum().reset_index()
+        gender_totals = filtered[["male", "female"]].sum().reset_index()
         gender_totals.columns = ["sex", "count"]
         fig, ax = plt.subplots(figsize=(6, 5))
         sns.barplot(
@@ -173,23 +218,34 @@ elif section == "Disease Analytics":
         ax.set(xlabel="Gender", ylabel="Total Cases")
         st.pyplot(fig, clear_figure=True)
 
-        # 5. Pivot table: Disease vs Age Group
+        # ===== PIVOT TABLE =====
         st.markdown("### Disease vs Age Group Breakdown")
         pivot_age = (
-            diseases.pivot_table(
+            filtered.pivot_table(
                 index="disease", columns="age_group", values="total", aggfunc="sum"
             ).fillna(0)
         )
         st.dataframe(pivot_age, use_container_width=True)
 
-        # 6. Pivot table: Disease vs Gender
-        st.markdown("### Disease vs Gender Breakdown")
-        pivot_gender = (
-            diseases.pivot_table(
-                index="disease", columns="age_group", values=["male", "female"], aggfunc="sum"
-            ).fillna(0)
+        # ===== HEATMAP (CUSUB) =====
+        st.markdown("### 🔥 Disease vs Age Group Heatmap")
+        fig, ax = plt.subplots(figsize=(8, 5))
+        sns.heatmap(pivot_age, annot=True, fmt=".0f", cmap="YlOrRd", ax=ax)
+        st.pyplot(fig, clear_figure=True)
+
+        # ===== PIE CHART (CUSUB) =====
+        st.markdown("### 🥧 Disease Distribution")
+        disease_pie = filtered.groupby("disease")["total"].sum()
+        fig, ax = plt.subplots(figsize=(7, 7))
+        ax.pie(
+            disease_pie,
+            labels=disease_pie.index,
+            autopct="%1.1f%%",
+            startangle=90,
+            colors=sns.color_palette("Set3"),
         )
-        st.dataframe(pivot_gender, use_container_width=True)
+        ax.axis("equal")
+        st.pyplot(fig, clear_figure=True)
 
 
 # =========================================================
@@ -217,7 +273,6 @@ elif section == "Nutrition & EPI":
         st.metric("Recorded measles dose coverage", pct(metrics["measles_coverage"]))
     st.dataframe(epi, use_container_width=True, hide_index=True)
 
-    # Qaybta Epidemiology Scenarios
     st.markdown("### Epidemiology Scenarios")
     st.dataframe(epidemiology_scenarios(services, epi), use_container_width=True, hide_index=True)
 
@@ -263,3 +318,15 @@ else:
         "For production: evaluate sensitivity, specificity, PPV, NPV, calibration, subgroup performance, "
         "missingness, and threshold stability on a governed, labeled validation set. Do not treat the smoke test as clinical evidence."
     )
+
+
+# =========================================================
+# FOOTER DISCLAIMER (CUSUB)
+# =========================================================
+st.divider()
+st.caption(
+    "**Disclaimer**: This dashboard uses aggregate facility data only. "
+    "No patient-identifiable information is included. "
+    "All statistical estimates are aggregate proxies and should not be interpreted as clinical evidence. "
+    "For operational decisions, consult with the facility's M&E officer and clinical lead."
+)
