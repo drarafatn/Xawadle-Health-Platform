@@ -1,4 +1,3 @@
-```python
 """Data ingestion and quality controls for Xawadle Q3 aggregate data."""
 from __future__ import annotations
 from dataclasses import dataclass
@@ -44,9 +43,7 @@ def clean_data(data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         df = frame.copy()
         df.columns = [c.strip().lower() for c in df.columns]
         for col in df.select_dtypes(include="object").columns:
-            df[col] = df[col].astype("string").str.strip().replace(
-                {"": pd.NA, "nan": pd.NA}
-            )
+            df[col] = df[col].astype("string").str.strip().replace({"": pd.NA, "nan": pd.NA})
         for col in ["total", "male", "female"]:
             if col in df:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -58,19 +55,13 @@ def validate_gender_consistency(df: pd.DataFrame, name: str) -> str | None:
     if all(col in df.columns for col in ["male", "female", "total"]):
         complete = df[["male", "female", "total"]].dropna()
         if not complete.empty:
-            mismatch = complete[
-                complete["male"] + complete["female"] != complete["total"]
-            ]
+            mismatch = complete[complete["male"] + complete["female"] != complete["total"]]
             if not mismatch.empty:
                 return f"{name}: {len(mismatch)} saf ayaa male + female ≠ total"
     return None
 
 
-def validate_duplicates(
-    df: pd.DataFrame,
-    name: str,
-    subset: list[str],
-) -> str | None:
+def validate_duplicates(df: pd.DataFrame, name: str, subset: list[str]) -> str | None:
     existing = [c for c in subset if c in df.columns]
     if existing:
         dupes = df.duplicated(subset=existing, keep=False)
@@ -79,11 +70,7 @@ def validate_duplicates(
     return None
 
 
-def validate_outliers(
-    df: pd.DataFrame,
-    name: str,
-    threshold: float = 3.0,
-) -> str | None:
+def validate_outliers(df: pd.DataFrame, name: str, threshold: float = 3.0) -> str | None:
     if "total" in df.columns:
         x = pd.to_numeric(df["total"], errors="coerce").dropna()
         if len(x) > 3:
@@ -103,38 +90,20 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
     svc, dis, epi = data["services"], data["diseases"], data["epi"]
 
     def check(name: str, passed: bool, detail: str):
-        checks.append(
-            {
-                "name": name,
-                "passed": bool(passed),
-                "detail": detail,
-            }
-        )
+        checks.append({"name": name, "passed": bool(passed), "detail": detail})
 
     # 1. Required tables present
-    check(
-        "Required tables present",
-        set(data) == {"services", "diseases", "epi"},
-        "services, diseases, epi",
-    )
+    check("Required tables present", set(data) == {"services", "diseases", "epi"}, "services, diseases, epi")
 
     # 2. No negative counts
     nonnegative = all(
         pd.to_numeric(df["total"], errors="coerce").dropna().ge(0).all()
         for df in data.values()
     )
-    check(
-        "No negative counts",
-        nonnegative,
-        "Negative counts are invalid",
-    )
+    check("No negative counts", nonnegative, "Negative counts are invalid")
 
     # 3. Missing value detection
-    for label, df in [
-        ("services", svc),
-        ("diseases", dis),
-        ("epi", epi),
-    ]:
+    for label, df in [("services", svc), ("diseases", dis), ("epi", epi)]:
         for col in ["total", "male", "female"]:
             if col in df and df[col].isna().any():
                 missing.append(f"{label}.{col}")
@@ -148,26 +117,17 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
             == complete_gender["total"].astype(float)
         ).all()
     )
-    check(
-        "Provided gender totals reconcile",
-        gender_reconciles,
-        "OPD and nutrition rows with supplied sex counts",
-    )
+    check("Provided gender totals reconcile", gender_reconciles, "OPD and nutrition rows with supplied sex counts")
 
     # 5. Nutrition sex counts reconcile
     nutrition = svc[svc["indicator"] == "Nutrition screening"]
     nutrition_reconciles = bool(
         (
-            nutrition["male"].astype(float)
-            + nutrition["female"].astype(float)
+            nutrition["male"].astype(float) + nutrition["female"].astype(float)
             == nutrition["total"].astype(float)
         ).all()
     )
-    check(
-        "Nutrition sex counts reconcile",
-        nutrition_reconciles,
-        "275 + 325 = 600",
-    )
+    check("Nutrition sex counts reconcile", nutrition_reconciles, "235 + 265 = 600")
 
     # 6. Gender consistency ee diseases iyo epi
     for name, df in [("diseases", dis), ("epi", epi)]:
@@ -176,36 +136,18 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
             warnings.append(w)
 
     # 7. Duplicate check
-    w = validate_duplicates(
-        dis,
-        "diseases",
-        ["period", "age_group", "disease"],
-    )
+    w = validate_duplicates(dis, "diseases", ["period", "age_group", "disease"])
     if w:
         warnings.append(w)
-
-    w = validate_duplicates(
-        epi,
-        "epi",
-        ["period", "antigen"],
-    )
+    w = validate_duplicates(epi, "epi", ["period", "antigen"])
     if w:
         warnings.append(w)
-
-    w = validate_duplicates(
-        svc,
-        "services",
-        ["period", "domain", "indicator"],
-    )
+    w = validate_duplicates(svc, "services", ["period", "domain", "indicator"])
     if w:
         warnings.append(w)
 
     # 8. Outlier check
-    for name, df in [
-        ("services", svc),
-        ("diseases", dis),
-        ("epi", epi),
-    ]:
+    for name, df in [("services", svc), ("diseases", dis), ("epi", epi)]:
         w = validate_outliers(df, name, threshold=3.0)
         if w:
             warnings.append(w)
@@ -213,31 +155,18 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
     # 9. Digniino ku saabsan xogta maqan (shuruud ku xiran)
     if "total" in dis.columns and dis["total"].isna().any():
         warnings.append(
-            "Disease-level totals and sex breakdowns were not supplied; "
-            "retained as missing rather than imputed."
+            "Disease-level totals and sex breakdowns were not supplied; retained as missing rather than imputed."
         )
-
     if "total" in epi.columns and epi["total"].isna().any():
         warnings.append(
-            "IPV 1-3 and Penta 1-3 counts were not supplied; "
-            "coverage cannot be computed for these antigens."
+            "IPV 1-3 and Penta 1-3 counts were not supplied; coverage cannot be computed for these antigens."
         )
-
     if missing:
-        warnings.append(
-            f"Missing-value fields detected: {', '.join(sorted(set(missing)))}"
-        )
+        warnings.append(f"Missing-value fields detected: {', '.join(sorted(set(missing)))}")
 
-    return QualityReport(
-        checks=checks,
-        missing_fields=sorted(set(missing)),
-        warnings=warnings,
-    )
+    return QualityReport(checks=checks, missing_fields=sorted(set(missing)), warnings=warnings)
 
 
-def prepare(
-    data_dir: str | Path,
-) -> tuple[dict[str, pd.DataFrame], QualityReport]:
+def prepare(data_dir: str | Path) -> tuple[dict[str, pd.DataFrame], QualityReport]:
     cleaned = clean_data(load_data(data_dir))
     return cleaned, validate(cleaned)
-```
