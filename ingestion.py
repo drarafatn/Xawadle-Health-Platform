@@ -120,7 +120,7 @@ def prepare(data_dir: Path) -> tuple[dict[str, pd.DataFrame], QualityReport]:
 
     # 4. Nutrition sex counts reconcile
     if not services.empty:
-        nutrition = services[services["domain"] == "Nutrition"]
+        nutrition = services[services["indicator"] == "Nutrition screening"]
         total_male = int(nutrition["male"].sum())
         total_female = int(nutrition["female"].sum())
         total_all = int(nutrition["total"].sum())
