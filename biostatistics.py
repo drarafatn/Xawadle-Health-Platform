@@ -25,13 +25,27 @@ def _continuity(a: float, b: float, c: float, d: float) -> tuple[float, float, f
     return tuple(v + 0.5 if v == 0 else v for v in vals)
 
 
-def risk_ratio(exposed_cases: float, exposed_total: float, unexposed_cases: float, unexposed_total: float) -> float | None:
+def risk_ratio(
+    exposed_cases: float,
+    exposed_total: float,
+    unexposed_cases: float,
+    unexposed_total: float,
+) -> float | None:
     if exposed_total <= 0 or unexposed_total <= 0:
         return None
-    return (exposed_cases / exposed_total) / (unexposed_cases / unexposed_total) if unexposed_total > 0 else math.inf
+    return (
+        (exposed_cases / exposed_total) / (unexposed_cases / unexposed_total)
+        if unexposed_total > 0
+        else math.inf
+    )
 
 
-def odds_ratio(exposed_cases: float, exposed_total: float, unexposed_cases: float, unexposed_total: float) -> float | None:
+def odds_ratio(
+    exposed_cases: float,
+    exposed_total: float,
+    unexposed_cases: float,
+    unexposed_total: float,
+) -> float | None:
     a, b, c, d = _continuity(
         exposed_cases,
         exposed_total - exposed_cases,
@@ -52,8 +66,8 @@ def epidemiology_scenarios(services: pd.DataFrame, epi: pd.DataFrame) -> pd.Data
 
     screening = get_service("Nutrition screening")
     mal = get_service("Malnutrition")
-    
-    # Halkan ayaa lagu hagaajiyay: epi_total waa wadarta guud ee EPI
+
+    # Wadarta guud ee EPI (ma aha 300 oo keliya)
     epi_total = float(epi["total"].sum()) if not epi.empty else 0.0
     measles = get_epi("Measles")
     incomplete = max(0.0, epi_total - measles)
@@ -86,26 +100,28 @@ def epidemiology_scenarios(services: pd.DataFrame, epi: pd.DataFrame) -> pd.Data
 
 
 def root_cause_actions() -> pd.DataFrame:
-    return pd.DataFrame([
-        {
-            "driver": "Suboptimal breastfeeding",
-            "pathway": "Lack of exclusive breastfeeding under six months may increase vulnerability to MAM/SAM.",
-            "indicator": "Malnutrition: 150 / 600 = 25.0%",
-            "action": "Strengthen breastfeeding counselling, early postnatal follow-up, and referral tracking.",
-        },
-        {
-            "driver": "Incomplete immunization",
-            "pathway": "Gaps in age-appropriate vaccination can increase susceptibility to vaccine-preventable infections.",
-            "indicator": "Measles coverage review",
-            "action": "Use defaulter tracing, outreach sessions, and antigen-specific register reconciliation.",
-        },
-        {
-            "driver": "Sanitation and hygiene gaps",
-            "pathway": "Unsafe water, sanitation, and hand hygiene can sustain diarrhoeal transmission.",
-            "indicator": "Handwashing intervention coverage not provided",
-            "action": "Add hygiene-promotion denominator and pre/post diarrhoea monitoring to the next reporting cycle.",
-        },
-    ])
+    return pd.DataFrame(
+        [
+            {
+                "driver": "Suboptimal breastfeeding",
+                "pathway": "Lack of exclusive breastfeeding under six months may increase vulnerability to MAM/SAM.",
+                "indicator": "Malnutrition: 150 / 600 = 25.0%",
+                "action": "Strengthen breastfeeding counselling, early postnatal follow-up, and referral tracking.",
+            },
+            {
+                "driver": "Incomplete immunization",
+                "pathway": "Gaps in age-appropriate vaccination can increase susceptibility to vaccine-preventable infections.",
+                "indicator": "Measles coverage review",
+                "action": "Use defaulter tracing, outreach sessions, and antigen-specific register reconciliation.",
+            },
+            {
+                "driver": "Sanitation and hygiene gaps",
+                "pathway": "Unsafe water, sanitation, and hand hygiene can sustain diarrhoeal transmission.",
+                "indicator": "Handwashing intervention coverage not provided",
+                "action": "Add hygiene-promotion denominator and pre/post diarrhoea monitoring to the next reporting cycle.",
+            },
+        ]
+    )
 
 
 def key_metrics(services: pd.DataFrame, epi: pd.DataFrame) -> dict[str, float]:
@@ -125,7 +141,7 @@ def key_metrics(services: pd.DataFrame, epi: pd.DataFrame) -> dict[str, float]:
     comp_deliveries = safe_row("Deliveries with complications")
     measles = safe_epi("Measles")
 
-    # Halkan ayaa lagu hagaajiyay: epi_total waa wadarta guud ee EPI
+    # Wadarta guud ee EPI
     epi_total = float(epi["total"].sum()) if not epi.empty else 0.0
     total_opd = opd_over + opd_under
 
@@ -133,6 +149,55 @@ def key_metrics(services: pd.DataFrame, epi: pd.DataFrame) -> dict[str, float]:
         "opd_total": total_opd,
         "under5_share": (opd_under / total_opd) if total_opd > 0 else 0.0,
         "malnutrition_rate": (mal / screening) if screening > 0 else 0.0,
-        "delivery_complication_rate": (comp_deliveries / deliveries) if deliveries > 0 else 0.0,
+        "delivery_complication_rate": (comp_deliveries / deliveries)
+        if deliveries > 0
+        else 0.0,
         "measles_coverage": measles / epi_total if epi_total > 0 else 0.0,
     }
+
+
+# =========================================================
+# FUNCTION CUSUB: Disease Risk Ratios
+# =========================================================
+def disease_risk_ratios(diseases: pd.DataFrame) -> pd.DataFrame:
+    """Xisaabi Risk Ratio ee cudur kasta: under_5 vs over_5.
+
+    Risk Ratio (RR) = (Under-5 cases / Total Under-5) / (Over-5 cases / Total Over-5)
+    """
+    if diseases.empty:
+        return pd.DataFrame()
+
+    rows = []
+    total_under = diseases[diseases["age_group"] == "under_5"]["total"].sum()
+    total_over = diseases[diseases["age_group"] == "over_5"]["total"].sum()
+
+    for disease_name in sorted(diseases["disease"].dropna().unique()):
+        d = diseases[diseases["disease"] == disease_name]
+        under5 = d[d["age_group"] == "under_5"]["total"].sum()
+        over5 = d[d["age_group"] == "over_5"]["total"].sum()
+
+        if total_under > 0 and total_over > 0 and over5 > 0:
+            rr = (under5 / total_under) / (over5 / total_over)
+        else:
+            rr = None
+
+        if rr is None:
+            interpretation = "Not estimable"
+        elif rr > 1.2:
+            interpretation = "Under-5 higher risk"
+        elif rr < 0.8:
+            interpretation = "Over-5 higher risk"
+        else:
+            interpretation = "Similar risk"
+
+        rows.append(
+            {
+                "disease": disease_name,
+                "under5_cases": int(under5),
+                "over5_cases": int(over5),
+                "risk_ratio_under5_vs_over5": round(rr, 2) if rr is not None else None,
+                "interpretation": interpretation,
+            }
+        )
+
+    return pd.DataFrame(rows)
