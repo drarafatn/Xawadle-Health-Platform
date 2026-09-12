@@ -62,13 +62,13 @@ with st.expander("📖 Data Dictionary"):
     | Column | Meaning |
     |---|---|
     | `period` | Reporting quarter (Q3 = July–September) |
-    | `age_group` | `under_5` ama `over_5` |
-    | `disease` | Nooca cudurka (ARI, Pneumonia, Fever, Diarrhoea, UTI) |
-    | `antigen` | Nooca tallaalka (BCG, OPV, IPV, Penta, PCV, Rota, Measles) |
-    | `indicator` | Nooca adeegga (OPD, ANC, PNC, Nutrition) |
-    | `total` | Tirada guud ee kiisaska |
-    | `male` / `female` | Kala qaybinta jinsiga |
-    | `data_status` | `provided` ama `missing` |
+    | `age_group` | `under_5` or `over_5` |
+    | `disease` | Disease type (ARI, Pneumonia, Fever, Diarrhoea, UTI) |
+    | `antigen` | Vaccine type (BCG, OPV, IPV, Penta, PCV, Rota, Measles) |
+    | `indicator` | Service type (OPD, ANC, PNC, Nutrition) |
+    | `total` | Total number of cases |
+    | `male` / `female` | Gender disaggregation |
+    | `data_status` | `provided` or `missing` |
     """)
 
 
@@ -86,7 +86,7 @@ if section == "Executive overview":
     st.markdown("### EPI Coverage Snapshot")
     epi_cols = st.columns(3)
 
-    # Xisaabi Measles Coverage dhab ah iyadoo la isticmaalayo Target Population
+    # Calculate true Measles Coverage using Target Population
     measles_total = epi[epi["antigen"] == "Measles"]["total"].sum() if not epi.empty else 0
     measles_coverage = measles_total / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
 
@@ -261,10 +261,10 @@ elif section == "Nutrition & EPI":
         st.metric("Malnutrition among screened", pct(metrics["malnutrition_rate"]))
     with right:
         e = epi[epi.total.notna()].copy()
-        # Coverage dhab ah antigen kasta iyadoo la isticmaalayo Target Population
+        # True coverage per antigen using Target Population
         e["coverage"] = e["total"] / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
 
-        # Xisaabi measles coverage halkan si looga fogaado NameError
+        # Calculate measles coverage here to avoid NameError
         measles_total = epi[epi["antigen"] == "Measles"]["total"].sum() if not epi.empty else 0
         measles_coverage = measles_total / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
 
@@ -290,11 +290,11 @@ elif section == "Biostatistics":
     st.json(descriptive(services.total.dropna()))
 
     # =========================================================
-    # CUSUB: Descriptive statistics by domain
+    # NEW: Descriptive statistics by domain
     # =========================================================
     st.markdown("### Descriptive statistics by domain")
-    st.caption("Tirakoobka guud ee qayb kasta (OPD, Maternal, Nutrition) si loo kala saaro xogta.")
-    
+    st.caption("Summary statistics for each domain (OPD, Maternal, Nutrition) to disaggregate the data.")
+
     for domain_name in services["domain"].unique():
         domain_data = services[services["domain"] == domain_name]["total"].dropna()
         if len(domain_data) > 0:
