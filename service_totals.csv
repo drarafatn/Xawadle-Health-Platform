@@ -1,0 +1,13 @@
+period,domain,indicator,total,male,female,parent_indicator,data_status
+Q3,OPD,OPD over 5 years,450,210,240,,provided
+Q3,OPD,OPD under 5 years,485,237,248,,provided
+Q3,Maternal,ANC,420,,,,provided
+Q3,Maternal,PNC,120,,,,provided
+Q3,Maternal,Deliveries,120,,,,provided
+Q3,Maternal,Deliveries with complications,24,,,,provided
+Q3,Nutrition,Nutrition screening,600,235,265,,provided
+Q3,Nutrition,Normal,450,,,,provided
+Q3,Nutrition,Malnutrition,150,,,,provided
+Q3,Nutrition,Acute malnutrition,113,,,,provided
+Q3,Nutrition,SAM,37,,,,provided
+Q3,Nutrition,SAM with complications/referred to SC,22,,,,provided

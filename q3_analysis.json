@@ -1,0 +1,103 @@
+{
+  "period": "Q3 (July\u2013September)",
+  "facility": "Xawadle Health Centre",
+  "quality": {
+    "passed": false,
+    "checks": [
+      {
+        "name": "Required tables present",
+        "passed": true,
+        "detail": "services, diseases, epi"
+      },
+      {
+        "name": "No negative counts",
+        "passed": true,
+        "detail": "Negative counts are invalid"
+      },
+      {
+        "name": "Provided gender totals reconcile",
+        "passed": false,
+        "detail": "OPD and nutrition rows with supplied sex counts"
+      },
+      {
+        "name": "Nutrition sex counts reconcile",
+        "passed": false,
+        "detail": "235 + 265 = 600"
+      }
+    ],
+    "missing_fields": [
+      "diseases.female",
+      "diseases.male",
+      "diseases.total",
+      "epi.female",
+      "epi.male",
+      "epi.total",
+      "services.female",
+      "services.male"
+    ],
+    "warnings": [
+      "Disease-level totals and sex breakdowns were not supplied; retained as missing rather than imputed.",
+      "IPV 1-3 and Penta 1-3 counts were not supplied; coverage cannot be computed for these antigens.",
+      "Missing-value fields detected: diseases.female, diseases.male, diseases.total, epi.female, epi.male, epi.total, services.female, services.male"
+    ]
+  },
+  "key_metrics": {
+    "opd_total": 935.0,
+    "under5_share": 0.5187165775401069,
+    "malnutrition_rate": 0.25,
+    "delivery_complication_rate": 0.2,
+    "measles_coverage": 0.5266666666666666
+  },
+  "descriptive_service_totals": {
+    "n": 12,
+    "mean": 249.25,
+    "median": 135.0,
+    "std": 212.69189196838443,
+    "min": 22.0,
+    "max": 600.0
+  },
+  "epidemiology_scenarios": [
+    {
+      "scenario": "Malnutrition proxy: screened vs not screened",
+      "exposure_definition": "Screened children; facility aggregate proxy only",
+      "exposed_cases": 150.0,
+      "exposed_total": 600.0,
+      "unexposed_cases": 0.0,
+      "unexposed_total": 0.0,
+      "risk_ratio": NaN,
+      "odds_ratio": NaN,
+      "interpretation": "Not estimable from aggregate data; no linked outcome denominator."
+    },
+    {
+      "scenario": "Incomplete measles dose proxy vs measles dose",
+      "exposure_definition": "Children without recorded measles dose in EPI denominator; not infection status",
+      "exposed_cases": 142.0,
+      "exposed_total": 300.0,
+      "unexposed_cases": 158.0,
+      "unexposed_total": 300.0,
+      "risk_ratio": 0.89873417721519,
+      "odds_ratio": 0.8077231212946643,
+      "interpretation": "Coverage contrast, not a disease risk estimate; denominator is aggregate and may not be a cohort."
+    }
+  ],
+  "root_cause_actions": [
+    {
+      "driver": "Suboptimal breastfeeding",
+      "pathway": "Lack of exclusive breastfeeding under six months may increase vulnerability to MAM/SAM.",
+      "indicator": "Malnutrition: 150 / 600 = 25.0%",
+      "action": "Strengthen breastfeeding counselling, early postnatal follow-up, and referral tracking."
+    },
+    {
+      "driver": "Incomplete immunization",
+      "pathway": "Gaps in age-appropriate vaccination can increase susceptibility to vaccine-preventable infections.",
+      "indicator": "Measles recorded dose: 158 / 300 = 52.7%",
+      "action": "Use defaulter tracing, outreach sessions, and antigen-specific register reconciliation."
+    },
+    {
+      "driver": "Sanitation and hygiene gaps",
+      "pathway": "Unsafe water, sanitation, and hand hygiene can sustain diarrhoeal transmission.",
+      "indicator": "Handwashing intervention coverage not provided",
+      "action": "Add hygiene-promotion denominator and pre/post diarrhoea monitoring to the next reporting cycle."
+    }
+  ]
+}

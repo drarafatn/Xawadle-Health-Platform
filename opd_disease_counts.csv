@@ -1,0 +1,11 @@
+period,age_group,disease,total,male,female,data_status
+Q3,over_5,ARI,,,,not_provided
+Q3,over_5,Pneumonia,,,,not_provided
+Q3,over_5,Fever,,,,not_provided
+Q3,over_5,Diarrhoea,,,,not_provided
+Q3,over_5,UTI,,,,not_provided
+Q3,under_5,ARI,,,,not_provided
+Q3,under_5,Pneumonia,,,,not_provided
+Q3,under_5,Fever,,,,not_provided
+Q3,under_5,Diarrhoea,,,,not_provided
+Q3,under_5,UTI,,,,not_provided
