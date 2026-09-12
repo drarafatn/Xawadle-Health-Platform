@@ -4,7 +4,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 from ingestion import prepare
-from biostatistics import descriptive, epidemiology_scenarios, key_metrics, root_cause_actions
+from biostatistics import descriptive, epidemiology_scenarios, key_metrics, root_cause_actions, disease_risk_ratios
 from benchmarking import example_synthetic_benchmark
 
 st.set_page_config(page_title="Xawadle Health Centre | Q3 Analytics", page_icon="+", layout="wide")
@@ -52,9 +52,6 @@ with st.expander("Data quality and provenance", expanded=not quality.passed):
         "Missing values are preserved as NA. The source prompt omitted numeric disease-by-gender counts and IPV/Penta totals."
     )
 
-# =========================================================
-# DATA DICTIONARY
-# =========================================================
 with st.expander("📖 Data Dictionary"):
     st.markdown("""
     | Column | Meaning |
@@ -155,7 +152,6 @@ elif section == "Disease Analytics":
     if diseases.empty:
         st.warning("No disease data available. Please check opd_disease_counts.csv.")
     else:
-        # ===== FILTERS =====
         st.markdown("### 🔍 Filter Data")
         col1, col2 = st.columns(2)
         with col1:
@@ -175,7 +171,6 @@ elif section == "Disease Analytics":
             diseases["age_group"].isin(age_filter) & diseases["disease"].isin(disease_filter)
         ]
 
-        # ===== DOWNLOAD BUTTON =====
         st.download_button(
             label="📥 Download Filtered Data (CSV)",
             data=filtered.to_csv(index=False),
@@ -183,11 +178,9 @@ elif section == "Disease Analytics":
             mime="text/csv",
         )
 
-        # ===== SHAXDA XOGTA =====
         st.markdown("### Disease Counts Table")
         st.dataframe(filtered, use_container_width=True, hide_index=True)
 
-        # ===== GRAPH: TOTAL BY DISEASE =====
         st.markdown("### Total Cases by Disease")
         disease_totals = filtered.groupby("disease")["total"].sum().reset_index()
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -195,7 +188,6 @@ elif section == "Disease Analytics":
         ax.set(xlabel="Total Cases", ylabel="")
         st.pyplot(fig, clear_figure=True)
 
-        # ===== GRAPH: CASES BY AGE GROUP =====
         st.markdown("### Cases by Age Group")
         age_totals = filtered.groupby("age_group")["total"].sum().reset_index()
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -203,7 +195,6 @@ elif section == "Disease Analytics":
         ax.set(xlabel="Age Group", ylabel="Total Cases")
         st.pyplot(fig, clear_figure=True)
 
-        # ===== GRAPH: CASES BY GENDER =====
         st.markdown("### Cases by Gender")
         gender_totals = filtered[["male", "female"]].sum().reset_index()
         gender_totals.columns = ["sex", "count"]
@@ -218,7 +209,6 @@ elif section == "Disease Analytics":
         ax.set(xlabel="Gender", ylabel="Total Cases")
         st.pyplot(fig, clear_figure=True)
 
-        # ===== PIVOT TABLE =====
         st.markdown("### Disease vs Age Group Breakdown")
         pivot_age = (
             filtered.pivot_table(
@@ -227,13 +217,11 @@ elif section == "Disease Analytics":
         )
         st.dataframe(pivot_age, use_container_width=True)
 
-        # ===== HEATMAP =====
         st.markdown("### 🔥 Disease vs Age Group Heatmap")
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.heatmap(pivot_age, annot=True, fmt=".0f", cmap="YlOrRd", ax=ax)
         st.pyplot(fig, clear_figure=True)
 
-        # ===== PIE CHART =====
         st.markdown("### 🥧 Disease Distribution")
         disease_pie = filtered.groupby("disease")["total"].sum()
         fig, ax = plt.subplots(figsize=(7, 7))
@@ -282,6 +270,7 @@ elif section == "Nutrition & EPI":
 # =========================================================
 elif section == "Biostatistics":
     st.markdown("## Biostatistical and epidemiological analysis")
+
     st.markdown("### Descriptive statistics of reported service totals")
     st.json(descriptive(services.total.dropna()))
 
@@ -291,6 +280,16 @@ elif section == "Biostatistics":
         "These are aggregate proxy comparisons, not causal or patient-level disease risk estimates. "
         "Linked numerator/denominator cohorts are required for valid clinical inference."
     )
+
+    st.markdown("### Disease Risk Ratios (Under-5 vs Over-5)")
+    if not diseases.empty:
+        st.dataframe(disease_risk_ratios(diseases), use_container_width=True, hide_index=True)
+        st.caption(
+            "Risk Ratio (RR) = (Under-5 cases / Total Under-5) / (Over-5 cases / Total Over-5). "
+            "RR > 1.2 = Under-5 higher risk; RR < 0.8 = Over-5 higher risk."
+        )
+    else:
+        st.info("No disease data available for risk ratio calculation.")
 
     st.markdown("### Root-cause logic")
     st.dataframe(root_cause_actions(), use_container_width=True, hide_index=True)
