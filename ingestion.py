@@ -52,7 +52,6 @@ def clean_data(data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
 
 
 def validate_gender_consistency(df: pd.DataFrame, name: str) -> str | None:
-    """Hubi in male + female = total. Soo celi digniin haddii aanay is waafaqsanayn."""
     if all(col in df.columns for col in ["male", "female", "total"]):
         complete = df[["male", "female", "total"]].dropna()
         if not complete.empty:
@@ -63,7 +62,6 @@ def validate_gender_consistency(df: pd.DataFrame, name: str) -> str | None:
 
 
 def validate_duplicates(df: pd.DataFrame, name: str, subset: list[str]) -> str | None:
-    """Hubi in aanay jirin safafka isku midka ah."""
     existing = [c for c in subset if c in df.columns]
     if existing:
         dupes = df.duplicated(subset=existing, keep=False)
@@ -73,7 +71,6 @@ def validate_duplicates(df: pd.DataFrame, name: str, subset: list[str]) -> str |
 
 
 def validate_outliers(df: pd.DataFrame, name: str, threshold: float = 3.0) -> str | None:
-    """Hubi in aanay jirin qiimaha aad uga fog (outliers) ee tirada."""
     if "total" in df.columns:
         x = pd.to_numeric(df["total"], errors="coerce").dropna()
         if len(x) > 3:
@@ -96,11 +93,7 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
         checks.append({"name": name, "passed": bool(passed), "detail": detail})
 
     # 1. Required tables present
-    check(
-        "Required tables present",
-        set(data) == {"services", "diseases", "epi"},
-        "services, diseases, epi",
-    )
+    check("Required tables present", set(data) == {"services", "diseases", "epi"}, "services, diseases, epi")
 
     # 2. No negative counts
     nonnegative = all(
@@ -124,11 +117,7 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
             == complete_gender["total"].astype(float)
         ).all()
     )
-    check(
-        "Provided gender totals reconcile",
-        gender_reconciles,
-        "OPD and nutrition rows with supplied sex counts",
-    )
+    check("Provided gender totals reconcile", gender_reconciles, "OPD and nutrition rows with supplied sex counts")
 
     # 5. Nutrition sex counts reconcile
     nutrition = svc[svc["indicator"] == "Nutrition screening"]
@@ -139,10 +128,6 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
         ).all()
     )
     check("Nutrition sex counts reconcile", nutrition_reconciles, "235 + 265 = 600")
-
-    # =========================================================
-    # CHECKS CUSUB (oo lagu daray)
-    # =========================================================
 
     # 6. Gender consistency ee diseases iyo epi
     for name, df in [("diseases", dis), ("epi", epi)]:
@@ -167,12 +152,12 @@ def validate(data: dict[str, pd.DataFrame]) -> QualityReport:
         if w:
             warnings.append(w)
 
-    # 9. Digniino ku saabsan xogta maqan (hadda la beddelay)
-    if dis["total"].isna().any() if "total" in dis else False:
+    # 9. Digniino ku saabsan xogta maqan (shuruud ku xiran)
+    if "total" in dis.columns and dis["total"].isna().any():
         warnings.append(
             "Disease-level totals and sex breakdowns were not supplied; retained as missing rather than imputed."
         )
-    if epi["total"].isna().any() if "total" in epi else False:
+    if "total" in epi.columns and epi["total"].isna().any():
         warnings.append(
             "IPV 1-3 and Penta 1-3 counts were not supplied; coverage cannot be computed for these antigens."
         )
