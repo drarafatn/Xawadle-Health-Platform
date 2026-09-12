@@ -26,7 +26,14 @@ with st.sidebar:
     st.markdown("## Platform navigation")
     section = st.radio(
         "View",
-        ["Executive overview", "Service analytics", "Nutrition & EPI", "Biostatistics", "AI benchmark"],
+        [
+            "Executive overview",
+            "Service analytics",
+            "Disease Analytics",
+            "Nutrition & EPI",
+            "Biostatistics",
+            "AI benchmark",
+        ],
     )
     st.divider()
     st.caption("Data governance")
@@ -122,6 +129,70 @@ elif section == "Service analytics":
 
 
 # =========================================================
+# DISEASE ANALYTICS (CUSUB)
+# =========================================================
+elif section == "Disease Analytics":
+    st.markdown("## Disease Analytics (OPD)")
+    st.caption("Q3 disease counts by age group and gender")
+
+    if diseases.empty:
+        st.warning("No disease data available. Please check opd_disease_counts.csv.")
+    else:
+        # 1. Soo bandhig shaxda xogta oo dhan
+        st.markdown("### Disease Counts Table")
+        st.dataframe(diseases, use_container_width=True, hide_index=True)
+
+        # 2. Graph-ka tirada guud ee cudur kasta
+        st.markdown("### Total Cases by Disease")
+        disease_totals = diseases.groupby("disease")["total"].sum().reset_index()
+        fig, ax = plt.subplots(figsize=(10, 5))
+        sns.barplot(data=disease_totals, y="disease", x="total", palette="flare", ax=ax)
+        ax.set(xlabel="Total Cases", ylabel="")
+        st.pyplot(fig, clear_figure=True)
+
+        # 3. Graph-ka kala qaybinta da'da (Age Group)
+        st.markdown("### Cases by Age Group")
+        age_totals = diseases.groupby("age_group")["total"].sum().reset_index()
+        fig, ax = plt.subplots(figsize=(8, 5))
+        sns.barplot(data=age_totals, x="age_group", y="total", palette="Set2", ax=ax)
+        ax.set(xlabel="Age Group", ylabel="Total Cases")
+        st.pyplot(fig, clear_figure=True)
+
+        # 4. Graph-ka kala qaybinta jinsiga (Gender)
+        st.markdown("### Cases by Gender")
+        gender_totals = diseases[["male", "female"]].sum().reset_index()
+        gender_totals.columns = ["sex", "count"]
+        fig, ax = plt.subplots(figsize=(6, 5))
+        sns.barplot(
+            data=gender_totals,
+            x="sex",
+            y="count",
+            palette={"male": "#2563eb", "female": "#db2777"},
+            ax=ax,
+        )
+        ax.set(xlabel="Gender", ylabel="Total Cases")
+        st.pyplot(fig, clear_figure=True)
+
+        # 5. Pivot table: Disease vs Age Group
+        st.markdown("### Disease vs Age Group Breakdown")
+        pivot_age = (
+            diseases.pivot_table(
+                index="disease", columns="age_group", values="total", aggfunc="sum"
+            ).fillna(0)
+        )
+        st.dataframe(pivot_age, use_container_width=True)
+
+        # 6. Pivot table: Disease vs Gender
+        st.markdown("### Disease vs Gender Breakdown")
+        pivot_gender = (
+            diseases.pivot_table(
+                index="disease", columns="age_group", values=["male", "female"], aggfunc="sum"
+            ).fillna(0)
+        )
+        st.dataframe(pivot_gender, use_container_width=True)
+
+
+# =========================================================
 # NUTRITION & EPI
 # =========================================================
 elif section == "Nutrition & EPI":
@@ -136,7 +207,6 @@ elif section == "Nutrition & EPI":
         st.metric("Malnutrition among screened", pct(metrics["malnutrition_rate"]))
     with right:
         e = epi[epi.total.notna()].copy()
-        # Halkan ayaa lagu hagaajiyay: epi_total oo dhan ayaa la isticmaalayaa
         epi_total = float(e["total"].sum()) if not e.empty else 0.0
         e["coverage"] = e.total / epi_total if epi_total > 0 else 0.0
         fig, ax = plt.subplots(figsize=(7, 5))
@@ -147,7 +217,7 @@ elif section == "Nutrition & EPI":
         st.metric("Recorded measles dose coverage", pct(metrics["measles_coverage"]))
     st.dataframe(epi, use_container_width=True, hide_index=True)
 
-    # Qaybta Epidemiology Scenarios oo lagu daray
+    # Qaybta Epidemiology Scenarios
     st.markdown("### Epidemiology Scenarios")
     st.dataframe(epidemiology_scenarios(services, epi), use_container_width=True, hide_index=True)
 
@@ -185,7 +255,9 @@ else:
     a.metric("Smoke-test accuracy", f"{result.metrics['accuracy']:.1%}")
     b.metric("Demographic parity gap", f"{result.metrics['demographic_parity_gap']:.1%}")
     c.metric("Status", "PASS")
-    st.code("from benchmarking import benchmark_predictions\nresults = benchmark_predictions(y_true, y_pred, group=sex)")
+    st.code(
+        "from benchmarking import benchmark_predictions\nresults = benchmark_predictions(y_true, y_pred, group=sex)"
+    )
     st.dataframe(pd.DataFrame([result.metrics]), use_container_width=True, hide_index=True)
     st.info(
         "For production: evaluate sensitivity, specificity, PPV, NPV, calibration, subgroup performance, "
