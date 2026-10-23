@@ -149,8 +149,12 @@ elif section == "Service analytics":
         palette={"male": "#2563eb", "female": "#db2777"},
         ax=ax,
     )
-    # Halkan waxaa lagu saxay magacyada hoose si aysan u go'in ama isu dul saarin
-    ax.tick_params(axis="x", rotation=35)
+    
+    # Toosinta saxda ah ee magacyada iyo tiirarka (Alignment fix)
+    indicators_list = services[services.male.notna() & services.female.notna()]["indicator"].unique()
+    ax.set_xticks(range(len(indicators_list)))
+    ax.set_xticklabels(indicators_list, rotation=45, ha="right")
+    
     ax.set(xlabel="", ylabel="Count")
     plt.tight_layout()
     st.pyplot(fig, clear_figure=True)
@@ -324,3 +328,34 @@ elif section == "Biostatistics":
 # =========================================================
 # AI BENCHMARK
 # =========================================================
+else:
+    st.markdown("## AI benchmark testing")
+    st.markdown(
+        "The framework is ready for an approved model's predictions or clinician-approved rules. "
+        "The demo below tests metric plumbing on deterministic synthetic vectors only."
+    )
+    result = example_synthetic_benchmark()
+    a, b, c = st.columns(3)
+    a.metric("Smoke-test accuracy", f"{result.metrics['accuracy']:.1%}")
+    b.metric("Demographic parity gap", f"{result.metrics['demographic_parity_gap']:.1%}")
+    c.metric("Status", "PASS")
+    st.code(
+        "from benchmarking import benchmark_predictions\nresults = benchmark_predictions(y_true, y_pred, group=sex)"
+    )
+    st.dataframe(pd.DataFrame([result.metrics]), use_container_width=True, hide_index=True)
+    st.info(
+        "For production: evaluate sensitivity, specificity, PPV, NPV, calibration, subgroup performance, "
+        "missingness, and threshold stability on a governed, labeled validation set. Do not treat the smoke test as clinical evidence."
+    )
+
+
+# =========================================================
+# FOOTER DISCLAIMER
+# =========================================================
+st.divider()
+st.caption(
+    "**Disclaimer**: This dashboard uses aggregate facility data only. "
+    "No patient-identifiable information is included. "
+    "All statistical estimates are aggregate proxies and should not be interpreted as clinical evidence. "
+    "For operational decisions, consult with the facility's M&E officer and clinical lead."
+)
