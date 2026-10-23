@@ -15,10 +15,8 @@ DATA_DIR = Path(__file__).parent
 # =========================================================
 TARGET_POPULATION = 21000
 
-
 def pct(x):
     return f"{x:.1%}" if x is not None else "—"
-
 
 with st.spinner("Loading data..."):
     data, quality = prepare(DATA_DIR)
@@ -71,7 +69,6 @@ with st.expander("📖 Data Dictionary"):
     | `data_status` | `provided` or `missing` |
     """)
 
-
 # =========================================================
 # EXECUTIVE OVERVIEW
 # =========================================================
@@ -86,7 +83,6 @@ if section == "Executive overview":
     st.markdown("### EPI Coverage Snapshot")
     epi_cols = st.columns(3)
 
-    # Calculate true Measles Coverage using Target Population
     measles_total = epi[epi["antigen"] == "Measles"]["total"].sum() if not epi.empty else 0
     measles_coverage = measles_total / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
 
@@ -122,7 +118,6 @@ if section == "Executive overview":
             hide_index=True,
         )
 
-
 # =========================================================
 # SERVICE ANALYTICS
 # =========================================================
@@ -150,7 +145,6 @@ elif section == "Service analytics":
     )
     ax.tick_params(axis="x", rotation=35)
     st.pyplot(fig, clear_figure=True)
-
 
 # =========================================================
 # DISEASE ANALYTICS
@@ -245,7 +239,6 @@ elif section == "Disease Analytics":
         ax.axis("equal")
         st.pyplot(fig, clear_figure=True)
 
-
 # =========================================================
 # NUTRITION & EPI
 # =========================================================
@@ -261,10 +254,8 @@ elif section == "Nutrition & EPI":
         st.metric("Malnutrition among screened", pct(metrics["malnutrition_rate"]))
     with right:
         e = epi[epi.total.notna()].copy()
-        # True coverage per antigen using Target Population
         e["coverage"] = e["total"] / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
 
-        # Calculate measles coverage here to avoid NameError
         measles_total = epi[epi["antigen"] == "Measles"]["total"].sum() if not epi.empty else 0
         measles_coverage = measles_total / TARGET_POPULATION if TARGET_POPULATION > 0 else 0.0
 
@@ -279,7 +270,6 @@ elif section == "Nutrition & EPI":
     st.markdown("### Epidemiology Scenarios")
     st.dataframe(epidemiology_scenarios(services, epi), use_container_width=True, hide_index=True)
 
-
 # =========================================================
 # BIOSTATISTICS
 # =========================================================
@@ -289,9 +279,6 @@ elif section == "Biostatistics":
     st.markdown("### Descriptive statistics of reported service totals")
     st.json(descriptive(services.total.dropna()))
 
-    # =========================================================
-    # NEW: Descriptive statistics by domain
-    # =========================================================
     st.markdown("### Descriptive statistics by domain")
     st.caption("Summary statistics for each domain (OPD, Maternal, Nutrition) to disaggregate the data.")
 
@@ -321,7 +308,6 @@ elif section == "Biostatistics":
     st.markdown("### Root-cause logic")
     st.dataframe(root_cause_actions(), use_container_width=True, hide_index=True)
 
-
 # =========================================================
 # AI BENCHMARK
 # =========================================================
@@ -344,7 +330,6 @@ else:
         "For production: evaluate sensitivity, specificity, PPV, NPV, calibration, subgroup performance, "
         "missingness, and threshold stability on a governed, labeled validation set. Do not treat the smoke test as clinical evidence."
     )
-
 
 # =========================================================
 # FOOTER DISCLAIMER
